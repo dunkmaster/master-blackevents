@@ -1,12 +1,13 @@
 #include "Packet.h"
 
-Packet::Packet(int _timeWindow, int _channelId, int _numberOfSamples, bool _overflow, int _sampleId)
+Packet::Packet(int _timeWindow, int _channelId, int _numberOfSamples, bool _overflow, int _sampleId, int _occupancy)
 {
 	timeWindow = _timeWindow;
 	channelId = _channelId;
 	numberOfSamples = _numberOfSamples;
 	overflow = _overflow;
 	sampleId = _sampleId;
+	occupancy = _occupancy;
 }
 
 Packet::Packet()
@@ -26,5 +27,6 @@ Packet& Packet::operator = (const Packet& _packet) {
 	overflow = _packet.overflow;
 	sampleId = _packet.sampleId;
 	sampaChipId = _packet.sampaChipId;
+	occupancy = _packet.occupancy;
 	return *this;
 }

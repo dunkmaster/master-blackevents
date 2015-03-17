@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <systemc.h>
+#include <chrono>
 #include "GlobalConstants.h"
 #include "Sample.h"
 #include "RandomGenerator.h"
@@ -35,11 +36,13 @@ public:
 	int createSingleFlux();
 
 	//Huffman methods
-
-
+	void sendGaussianDistribution();
+	double calcSpace(int occ);
+	std::vector<int> getOccupancy();
 	//End
 	Datamap readBlackEvents();
 	void sendBlackEvents();
+
 
 	//Create flux and variety functions
 	void createFlux(std::vector<int> &values);

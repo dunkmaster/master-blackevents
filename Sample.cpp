@@ -37,5 +37,6 @@ Sample& Sample::operator = (const Sample& _sample) {
 	sampleId = _sample.sampleId;
 	size = _sample.size;
 	data = _sample.data;
+	occupancy = _sample.occupancy;
 	return *this;
 }

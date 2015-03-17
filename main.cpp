@@ -9,7 +9,7 @@
 #include "SAMPA.h"
 #include "GlobalConstants.h"
 #include "DataGenerator.h"
-#include "Graph.h"
+//#include "Graph.h"
 #include "Monitor.h"
 
 
@@ -42,7 +42,7 @@ int sc_main(int argc, char* argv[]) {
 
 	//Module initialization
 
-    //monitor = new Monitor(); 
+    //monitor = new Monitor();
 	//dg.monitor = monitor;
 
 	//SAMPA
@@ -50,14 +50,14 @@ int sc_main(int argc, char* argv[]) {
 	{
 		module_name_stream << "SAMPA_" << i;
 		module_name = module_name_stream.str();
-		sampas[i] = new SAMPA(module_name.c_str()); 
+		sampas[i] = new SAMPA(module_name.c_str());
 		sampas[i]->setAddr(i);
 		//sampas[i]->monitor = monitor;
 
 		sampas[i]->initChannels();
 
 		module_name_stream.str(string());
-		module_name_stream.clear();   
+		module_name_stream.clear();
 	}
 
   	//GBT
@@ -67,9 +67,9 @@ int sc_main(int argc, char* argv[]) {
 		module_name = module_name_stream.str();
 		gbts[i] = new GBT(module_name.c_str());
 		module_name_stream.str(string());
-		module_name_stream.clear(); 
+		module_name_stream.clear();
 	}
-	
+
 	//CRU
 	for(int i = 0; i < constants::NUMBER_OF_CRU_CHIPS; i++)
 	{
@@ -77,7 +77,7 @@ int sc_main(int argc, char* argv[]) {
 		module_name = module_name_stream.str();
 		crus[i] = new CRU(module_name.c_str());
 		module_name_stream.str(string());
-		module_name_stream.clear(); 
+		module_name_stream.clear();
 	}
 
    //Channel initialization
@@ -93,7 +93,7 @@ int sc_main(int argc, char* argv[]) {
 	sc_fifo<Packet>* fifo_SAMPA_GBT[constants::NUMBER_OF_SAMPA_CHIPS * constants::NUMBER_OUTPUT_PORTS_TO_GBT]; // Only even numbers
 	for(int i = 0; i < constants::NUMBER_OF_SAMPA_CHIPS * constants::NUMBER_OUTPUT_PORTS_TO_GBT; i++)
 	{
-		fifo_SAMPA_GBT[i] = new sc_fifo<Packet>(constants::NUMBER_CHANNELS_PER_PORT);
+		fifo_SAMPA_GBT[i] = new sc_fifo<Packet>(10000);
 	}
 
 	//DataGenerator->SAMPA channels
@@ -124,13 +124,13 @@ int sc_main(int argc, char* argv[]) {
 			cru_port = 0;
 		}
 		gbts[gbt_number]->porter_GBT_to_CRU[gbt_port++](*fifo_GBT_CRU[i]);
-		crus[cru_number]->porter[cru_port++](*fifo_GBT_CRU[i]);	
-		
+		crus[cru_number]->porter[cru_port++](*fifo_GBT_CRU[i]);
+
 		//std::cout << "Kobler GBT " << gbt_number << " to CRU " << cru_number << std::endl;
 	}
-	
+
 	/*
-	
+
 	gbt_number = 0;
 	gbt_port = 0;
 	for(int i = 0; i < constants::NUMBER_OF_CHANNELS_BETWEEN_GBT_AND_CRU * constants::NUMBER_OF_GBT_CHIPS; i++)
@@ -157,12 +157,12 @@ int sc_main(int argc, char* argv[]) {
 		}
 		dg.porter_DG_to_SAMPA[i](*fifo_DG_SAMPA[i]);
 		sampas[sampa_number]->porter_DG_to_SAMPA[sampa_port++](*fifo_DG_SAMPA[i]);
-		
+
 		//gbts[gbt_number]->porter_GBT_to_CRU[gbt_port++](*fifo_GBT_CRU[i]);
 		//cru.porter[i](*fifo_GBT_CRU[i]);
 	}
 
-	//SAMPA->GBT 
+	//SAMPA->GBT
 
 	gbt_number = 0;
 	gbt_port = 0;
@@ -183,7 +183,7 @@ int sc_main(int argc, char* argv[]) {
 			sampa_port = 0;
 		}
 		sampas[sampa_number]->porter_SAMPA_to_GBT[sampa_port++](*fifo_SAMPA_GBT[i]);
-		gbts[gbt_number]->porter_SAMPA_to_GBT[gbt_port++](*fifo_SAMPA_GBT[i]);	
+		gbts[gbt_number]->porter_SAMPA_to_GBT[gbt_port++](*fifo_SAMPA_GBT[i]);
 	}
 
 	//start simulation
@@ -199,10 +199,10 @@ int sc_main(int argc, char* argv[]) {
 	{
 		std::cout << gbts[i]->name() << " received " << gbts[i]->numberOfSamplesReceived << std::endl; //numberOfSamplesReceived
 	}
-	
+
 	for(int i = 0; i < constants::NUMBER_OF_CRU_CHIPS; i++)
 	{
-		std::cout << crus[i]->name() << " received " << crus[i]->numberOfSamplesReceived << std::endl; //numberOfSamplesReceived	
+		std::cout << crus[i]->name() << " received " << crus[i]->numberOfSamplesReceived << std::endl; //numberOfSamplesReceived
 	}*/
 		std::cout << sc_time_stamp()  << " Finished " << std::endl;
 
@@ -212,7 +212,7 @@ int sc_main(int argc, char* argv[]) {
  	int sum = 0;
  	for(int i = 0; i < (constants::SAMPA_NUMBER_INPUT_PORTS * constants::NUMBER_OF_SAMPA_CHIPS); i++)
  	{
-		
+
 		outputFile << "Fifo "<< i << ". number of packets in fifo: " << cru.input_fifos[i].size();
 		while(!cru.input_fifos[i].empty())
 		{
@@ -228,11 +228,10 @@ int sc_main(int argc, char* argv[]) {
 		outputFile << std::endl;
 	}
 	outputFile << "Sum: " << sum << std::endl;
-	
+
 	outputFile.close();*/
 	//----
 	//std::cout << "DataGenerator shifted: " << dg.monitor->getDatageneratorInfo() << endl;
-	std::cout << "Test";
 	if(constants::DG_SIMULTION_TYPE == 2){
 		std::vector< Point > pointsD, pointsH;
 		for(int i = 0; i < constants::NUMBER_OF_SAMPA_CHIPS; i++){
@@ -241,12 +240,12 @@ int sc_main(int argc, char* argv[]) {
 				Point p1, p2;
 				p1.y = static_cast<float>(sampas[i]->infoArray[j].lowestBufferDepth);
 				p1.x = static_cast<float>(dg.occupancyPoints[j]);
-				pointsD.push_back(p1);	
+				pointsD.push_back(p1);
 				p2.y = static_cast<float>(sampas[i]->infoArray[j].lowestHeaderBufferDepth);
 				p2.x = static_cast<float>(dg.occupancyPoints[j]);
 				pointsH.push_back(p2);
 			}
-		//std::cout << dg.occupancyPoints[i] << endl;	
+		//std::cout << dg.occupancyPoints[i] << endl;
 		}
 		Graph graph1(pointsD, "Occupancy", "Depth" , "OccupancyDataBuffer");
 		Graph graph2(pointsH, "Occupancy", "Depth" , "OccupancyHeaderBuffer");
@@ -262,14 +261,14 @@ int sc_main(int argc, char* argv[]) {
 		labels.push_back("");
 		labels.push_back("Max Header Depth");
 		labels.push_back("Header Depth");
-		
+
 		if(constants::OUTPUT_TYPE == "lowest"){
-			
+
 		for(int i = 0; i < constants::NUMBER_OF_SAMPA_CHIPS; i++){
 			for (int j = 0; j < constants::SAMPA_NUMBER_INPUT_PORTS; ++j)
 			{
 				MultiPoint pd, ph;
-				std::string name = std::string(sampas[i]->name()) + "_Channel" + 
+				std::string name = std::string(sampas[i]->name()) + "_Channel" +
 					std::to_string(sampas[i]->channels[j]->getAddr());
 				pd.push_back(name);
 				pd.push_back(std::to_string(constants::CHANNEL_DATA_BUFFER_SIZE));
@@ -277,46 +276,53 @@ int sc_main(int argc, char* argv[]) {
 				pd.push_back("");
 				pd.push_back(std::to_string(constants::CHANNEL_HEADER_BUFFER_SIZE));
 				pd.push_back(std::to_string(sampas[i]->channels[j]->lowestHeaderBufferNumber));
-				dataPoints.push_back(pd);		
+				dataPoints.push_back(pd);
 			}
-			
+
 		}
-		Graph dataGraph(dataPoints, labels, "FullGraph-Lowest-Flux");
+		Graph dataGraph(dataPoints, labels, "FullGraph-Lowest-Test2");
 		dataGraph.writeMultiGraphToFile(true);
 		} else if(constants::OUTPUT_TYPE == "long"){
+			StringVector l;
+			l.push_back("TimeFrame");
+			l.push_back("Timebin");
+			l.push_back("Signal");
+			l.push_back("Occupancy");
 
+			Graph g(sampas[0]->channels[16]->dataPoints, l, "SignalGraph100TW25OCC");
+			g.writeMultiGraphToFile(true);
 			for(int i = 0; i < constants::NUMBER_OF_SAMPA_CHIPS; i++){
 				for(int j = 0; j < constants::SAMPA_NUMBER_INPUT_PORTS; j++){
 					for (int k = 0; k < sampas[i]->channels[j]->dataBufferNumbers.size(); ++k){
 						MultiPoint pd, ph;
-						std::string name = std::string(sampas[i]->name()) + "_Channel" + 
+						std::string name = std::string(sampas[i]->name()) + "_Channel" +
 							std::to_string(sampas[i]->channels[j]->getAddr());
 						pd.push_back(name);
 						pd.push_back(std::to_string(constants::DG_OCCUPANCY));
 						pd.push_back(std::to_string(constants::CHANNEL_DATA_BUFFER_SIZE));
 						pd.push_back(std::to_string(sampas[i]->channels[j]->dataBufferNumbers[k]));
-						pd.push_back(std::to_string(k+1));
+						pd.push_back(std::to_string(k));
 						pd.push_back(std::to_string(constants::CHANNEL_HEADER_BUFFER_SIZE));
 						pd.push_back(std::to_string(sampas[i]->channels[j]->headerBufferNumbers[k]));
 						dataPoints.push_back(pd);
 					}
 				}
-					
+
 			}
-			Graph dataGraph(dataPoints, labels, "FullGraph-70%-10tw-noflux-no-max");
+			Graph dataGraph(dataPoints, labels, "FullGraph-25-100TW");
 			dataGraph.writeMultiGraphToFile(true);
 		}
-		
+
 	}
-	
+
 
 
 	outputFile.open(constants::OUTPUT_FILE_NAME, std::ios_base::app);
-	
+
 	for(int i = 0; i < constants::NUMBER_OF_CRU_CHIPS; i++)
 	{
 		outputFile << "Data sent by CRU" << i << ":" << std::endl;
-		
+
 		while(!crus[i]->sentData.empty())
 		{
 			outputFile << crus[i]->sentData.front() << std::endl;
@@ -324,11 +330,11 @@ int sc_main(int argc, char* argv[]) {
 		}
 	}
 	outputFile.close();
-	
+
 	return 0;
 }
 
-/*	
+/*
  *  Static connection example
 	gbts[0]->porter_SAMPA_to_GBT[0](*fifo_SAMPA_GBT[0]);
 	gbts[0]->porter_SAMPA_to_GBT[1](*fifo_SAMPA_GBT[1]);
@@ -338,7 +344,7 @@ int sc_main(int argc, char* argv[]) {
 	gbts[0]->porter_SAMPA_to_GBT[5](*fifo_SAMPA_GBT[5]);
 	gbts[0]->porter_SAMPA_to_GBT[6](*fifo_SAMPA_GBT[6]);
 	gbts[0]->porter_SAMPA_to_GBT[7](*fifo_SAMPA_GBT[7]);
-	
+
 	sampas[0]->porter[0](*fifo_SAMPA_GBT[0]);
 	sampas[0]->porter[1](*fifo_SAMPA_GBT[1]);
 	sampas[0]->porter[2](*fifo_SAMPA_GBT[2]);

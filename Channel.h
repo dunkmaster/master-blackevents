@@ -8,7 +8,7 @@
 #include <list>
 #include <map>
 #include <queue>
-#include "Sample.h"
+#include "Graph.h"
 
 /*
 Channel module = Represents each Sampa channel
@@ -16,20 +16,20 @@ Channel module = Represents each Sampa channel
 */
 class Channel : public sc_module {
 public:
-	
+
 	//Ports between the DataGenerator and the Channel
 	sc_port< sc_fifo_in_if< Sample > > port_DG_to_CHANNEL;
 	long numberOfSamplesReceived;
 	long lowestDataBufferNumber;
 	long lowestHeaderBufferNumber;
-
+	std::vector< MultiPoint > dataPoints;
 	std::vector< long > dataBufferNumbers;
 	std::vector< long > headerBufferNumbers;
 
 
 
 	//Data and Header buffers
-	std::list<Sample> dataBuffer; 
+	std::list<Sample> dataBuffer;
 	std::queue<Packet> headerBuffer;
 
 	inline void setPad(int val) { Pad = val; };
@@ -47,7 +47,7 @@ public:
 	inline bool getOutput(){ return output; };
 
 	void receiveData(); //Main SystemC Thread.
-
+	int calcAction(Sample sample, Sample lastSample, bool insert);
 
 
 	Channel(sc_module_name name);

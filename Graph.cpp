@@ -22,25 +22,26 @@ Graph::Graph(std::vector< MultiPoint > points, std::vector<std::string> _labels,
 bool Graph::writeMultiGraphToFile(bool append){
     std::ofstream GraphFile;
     if(append){
-        GraphFile.open("graph-"+name+".csv", std::ofstream::app);
+        GraphFile.open("graph-"+name+".csv", std::ofstream::out|std::ofstream::ate|std::ofstream::app);
+				//GraphFile << '\n';
     } else {
         GraphFile.open("graph-"+name+".csv");
+				GraphFile << '\n';
+				for (std::vector<std::string>::iterator it = labels.begin(); it != labels.end(); ++it)
+		    {
+		        GraphFile << *it << ";";
+		    }
+				GraphFile << '\n';
     }
-
-    for (int i = 0; i < labels.size(); ++i)
+		GraphFile << '\n';
+    for (std::vector< MultiPoint>::iterator it = graphMultiPoints.begin(); it != graphMultiPoints.end(); it++)
     {
-        GraphFile << labels[i] << ";";
-    }
-    GraphFile << std::endl;
-    for (int i = 0; i < graphMultiPoints.size(); i++)
-    {
-        for (int j = 0; j < graphMultiPoints[i].size(); ++j)
+        for (std::vector<std::string>::iterator jt = it->begin(); jt != it->end(); jt++)
         {
-            GraphFile << graphMultiPoints[i][j] << ";";   
+            GraphFile << *jt << ";";
         }
-        GraphFile << std::endl;
+        GraphFile << '\n';
     }
-
      GraphFile.close();
 }
 

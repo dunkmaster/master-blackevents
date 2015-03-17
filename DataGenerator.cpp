@@ -9,9 +9,11 @@
  		incrementingOccupancySink();
  	} else if(constants::DG_SIMULTION_TYPE == 3){
  		globalRandomnessSink();
- 	} else {
+ 	} else if(constants::DG_SIMULTION_TYPE == 4){
  		sendBlackEvents();
- 	}
+ 	} else {
+     sendGaussianDistribution();
+   }
  }
 
 void DataGenerator::createFlux(std::vector<int> &values){
@@ -306,6 +308,121 @@ DataGenerator::Datamap DataGenerator::readBlackEvents(){
 		return map;
 }
 
+void DataGenerator::sendGaussianDistribution(){
+  double spacing;
+  RandomGenerator randomGenerator;
+  std::vector<int> currentOccupancy = getOccupancy();
+  for(int i = 0; i < currentOccupancy.size(); i++){
+    std::cout << currentOccupancy[i] << std::endl;
+  }
+  int hack[20] = {56, 74, 65, 67, 52, 49, 60, 79, 85, 71, 59, 90, 80, 63, 75, 76, 83, 91, 77, 87};
+  int index = randomGenerator.generate(0, constants::NUMBER_TIME_WINDOWS_TO_SIMULATE - 1);
+  std::default_random_engine gen;
+  //std::normal_distribution<double> dist(calcSpace(currentOccupancy[index]), 0.5);
+  std::normal_distribution<double> dist(calcSpace(currentOccupancy[index]), 0.5);
+  spacing = dist(gen);
+  int64_t packetCounter = 1;
+	int currentSample = 0;
+	int currentTimeWindow = 1;
+  bool sendSample = true;
+
+  int sendCount = 0;
+  int emptyCount = 0;
+  std::vector<int> signals;
+    //While we still have timewindows to send
+	while(currentTimeWindow <= constants::NUMBER_TIME_WINDOWS_TO_SIMULATE)
+	{
+		//Loop each channel
+		for(int i = 0; i < constants::NUMBER_OF_SAMPA_CHIPS * constants::SAMPA_NUMBER_INPUT_PORTS; i++)
+		{
+      if(sendSample){
+        Sample sample(currentTimeWindow, packetCounter, 1, 1, currentOccupancy[index]);
+        packetCounter++;
+        porter_DG_to_SAMPA[i]->nb_write(sample);
+      } else {
+        Sample emptySample(currentTimeWindow, packetCounter, 1, 0, currentOccupancy[index]); //REMOVE HACK
+        porter_DG_to_SAMPA[i]->nb_write(emptySample);
+
+      }
+		}
+    if(sendSample){
+      sendCount++;
+      //signals.push_back(1);
+    } else {
+      emptyCount++;
+      //signals.push_back(0);
+    }
+		currentSample++;
+    if(sendCount == 3){
+      sendCount = 0;
+      sendSample = false;
+    }
+    if(emptyCount >= spacing){
+      spacing = dist(gen);
+      emptyCount = 0.0;
+      sendSample = true;
+    }
+		std::cout << "Sending data " << currentSample << '\r';
+		//Increments timeWindow
+		if(currentSample == constants::NUMBER_OF_SAMPLES_IN_EACH_TIME_WINDOW )//1021 samples
+		{
+			currentTimeWindow++;
+			std::cout << "Current packetCounter: " << packetCounter << " window: " << currentTimeWindow << " occupancy: " << currentOccupancy[index] << endl;
+      /*for(int i = 0; i < signals.size(); i++){
+        std::cout << signals[i] << " ";
+      }*/
+      index = randomGenerator.generate(0, constants::NUMBER_TIME_WINDOWS_TO_SIMULATE - 1);
+
+      dist.param(std::normal_distribution<double>::param_type(calcSpace(currentOccupancy[index]), 0.5));
+			currentSample = 0;
+      sendCount = 0;
+      emptyCount = 0;
+      sendSample = true;
+
+		}
+
+		wait((constants::DG_WAIT_TIME), SC_NS);
+	}
+}
+
+double DataGenerator::calcSpace(int occ){
+  double numberOfSamples = (constants::NUMBER_OF_SAMPLES_IN_EACH_TIME_WINDOW * occ) / 100.0;
+  double numberOfPeaks = numberOfSamples / 3.0;
+  double numberOfEmptyTimeBins = constants::NUMBER_OF_SAMPLES_IN_EACH_TIME_WINDOW - numberOfSamples;
+  return (numberOfEmptyTimeBins / numberOfPeaks);
+
+}
+
+std::vector<int> DataGenerator::getOccupancy(){
+
+  RandomGenerator generator;
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  double mean = 23.0;
+  double sum = 0.0;
+  double array[100];
+
+ array[0] = 74;
+ for(int i = 1; i <= 10; i++){
+   array[i] = 44;
+ }
+ for(int i = 11; i < 100; i++){
+   array[i] = generator.generate(mean-10, mean+10);
+ }
+ for(int i = 0; i < 100; i++)
+	 sum += pow(array[i] - mean, 2.0);
+
+ double varians = sum/100;
+ double deviation = sqrt(varians);
+
+ std::default_random_engine gen(seed);
+ std::normal_distribution<double> dist(mean, deviation);
+ std::vector<int> result;
+ for(int i = 0; i < constants::NUMBER_TIME_WINDOWS_TO_SIMULATE; i++){
+   result.push_back((int)dist(gen));
+ }
+  return result;
+
+}
 
 /*
  * Writing log data to text file.
